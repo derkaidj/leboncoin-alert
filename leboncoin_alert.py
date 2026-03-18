@@ -1,85 +1,58 @@
-import feedparser
 import requests
 import time
 import json
 import os
 from datetime import datetime
-
+ 
 # ============================================================
-#  CONFIGURATION — MODIFIE CES 2 LIGNES
+#  CONFIGURATION
 # ============================================================
-TELEGRAM_TOKEN = "8760062971:AAHgRGZRLSMARkQd5qmZLS9XTha3bZGURbY"       # ex: 7234567890:AAFxxx
-TELEGRAM_CHAT_ID = "8035951279"   # ex: 123456789
-# ============================================================
-
-# Intervalle de vérification en secondes (60 = toutes les minutes)
+TELEGRAM_TOKEN = "8760062971:AAHgRGZRLSMARkQd5qmZLS9XTha3bZGURbY"
+TELEGRAM_CHAT_ID = "8035951279"
 INTERVAL = 60
-
-# Fichier pour mémoriser les annonces déjà vues
 SEEN_FILE = "seen_ids.json"
-
+ 
 # ============================================================
-#  TES RECHERCHES LEBONCOIN
-#  Format : ("Nom affiché", "URL RSS Leboncoin")
-#
-#  Comment obtenir une URL RSS :
-#  1. Va sur leboncoin.fr
-#  2. Fais ta recherche
-#  3. Ajoute &rss=1 à la fin de l'URL
+#  RECHERCHES ET PRIX MAXIMUM PAR CATEGORIE
 # ============================================================
 SEARCHES = [
-    (
-        "💍 Bijoux anciens",
-        "https://www.leboncoin.fr/recherche?category=15&keywords=bijou+ancien&rss=1"
-    ),
-    (
-        "🕯️ Laiton / Cuivre",
-        "https://www.leboncoin.fr/recherche?category=17&keywords=laiton+ancien&rss=1"
-    ),
-    (
-        "⌚ Montre ancienne",
-        "https://www.leboncoin.fr/recherche?category=15&keywords=montre+ancienne+vintage&rss=1"
-    ),
-    (
-        "🥈 Argenterie",
-        "https://www.leboncoin.fr/recherche?category=17&keywords=argent+ancien+argente&rss=1"
-    ),
-    (
-        "🎖️ Médailles / Monnaies",
-        "https://www.leboncoin.fr/recherche?category=17&keywords=medaille+ancienne+monnaie&rss=1"
-    ),
-    (
-        "🪆 Figurines / Miniatures",
-        "https://www.leboncoin.fr/recherche?category=17&keywords=figurine+miniature+ancienne&rss=1"
-    ),
-    (
-        "🔍 Broches / Camées",
-        "https://www.leboncoin.fr/recherche?category=15&keywords=broche+camee+vintage&rss=1"
-    ),
+    ("💍 Bijou argent ancien",     "bijou argent ancien",        15),
+    ("⌚ Montre ancienne",          "montre ancienne gousset",    20),
+    ("🕯️ Bougeoir laiton",         "bougeoir laiton ancien",     10),
+    ("🎖️ Médaille ancienne",       "medaille ancienne",           8),
+    ("🔍 Broche camée vintage",    "broche camee vintage",       10),
+    ("👜 Sac Louis Vuitton",       "sac louis vuitton",          50),
+    ("👗 Veste Moncler",           "veste moncler",              60),
+    ("👟 Nike Air Jordan",         "nike air jordan",            30),
+    ("🥈 Argenterie ancienne",     "argenterie argent massif",   20),
+    ("🪙 Pièce monnaie ancienne",  "piece monnaie ancienne",      5),
 ]
-
-# Mots-clés à EXCLURE (pour éviter les fausses alertes)
+ 
 EXCLUDE_KEYWORDS = [
-    "reproduction", "copie", "moderne", "neuf", "plastique",
-    "lot de 10", "lot de 20", "grossiste"
+    "cherche", "recherche", "wanted", "reproduction",
+    "copie", "faux", "plaque", "lot de 50", "lot de 100"
 ]
-
-# Prix maximum (None = pas de limite)
-MAX_PRICE = 150  # euros
-
-
+ 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "fr-FR,fr;q=0.9",
+    "Referer": "https://www.leboncoin.fr/",
+}
+ 
+ 
 def load_seen():
     if os.path.exists(SEEN_FILE):
         with open(SEEN_FILE, "r") as f:
             return set(json.load(f))
     return set()
-
-
+ 
+ 
 def save_seen(seen):
     with open(SEEN_FILE, "w") as f:
-        json.dump(list(seen), f)
-
-
+        json.dump(list(seen)[-2000:], f)
+ 
+ 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
@@ -94,110 +67,132 @@ def send_telegram(message):
             print(f"[Telegram ERROR] {r.text}")
     except Exception as e:
         print(f"[Telegram EXCEPTION] {e}")
-
-
-def extract_price(entry):
-    """Tente d'extraire le prix depuis le titre ou la description."""
-    text = entry.get("title", "") + " " + entry.get("summary", "")
-    import re
-    matches = re.findall(r'(\d+[\s,.]?\d*)\s*€', text.replace("\u202f", "").replace("\xa0", ""))
-    if matches:
-        try:
-            return float(matches[0].replace(",", ".").replace(" ", ""))
-        except:
-            return None
-    return None
-
-
-def is_excluded(entry):
-    text = (entry.get("title", "") + " " + entry.get("summary", "")).lower()
+ 
+ 
+def is_excluded(text):
+    text_lower = text.lower()
     for kw in EXCLUDE_KEYWORDS:
-        if kw.lower() in text:
+        if kw.lower() in text_lower:
             return True
     return False
-
-
-def check_feed(label, url, seen):
-    new_alerts = []
+ 
+ 
+def search_leboncoin(keywords, max_price):
+    url = "https://api.leboncoin.fr/api/adfinder/v1/search"
+    payload = {
+        "filters": {
+            "keywords": {"text": keywords, "type": "all"},
+            "ranges": {"price": {"max": max_price}}
+        },
+        "sort_by": "time",
+        "sort_order": "desc",
+        "limit": 20,
+        "offset": 0
+    }
     try:
-        feed = feedparser.parse(url)
-        for entry in feed.entries:
-            uid = entry.get("id") or entry.get("link")
-            if uid in seen:
-                continue
-
-            seen.add(uid)
-
-            if is_excluded(entry):
-                continue
-
-            price = extract_price(entry)
-            if MAX_PRICE and price and price > MAX_PRICE:
-                continue
-
-            title = entry.get("title", "Sans titre")
-            link = entry.get("link", "")
-            pub = entry.get("published", "")
-
-            price_str = f"{price:.0f}€" if price else "Prix non indiqué"
-
-            message = (
-                f"{label}\n"
-                f"━━━━━━━━━━━━━━━━\n"
-                f"<b>{title}</b>\n"
-                f"💰 {price_str}\n"
-                f"🕐 {pub}\n"
-                f"🔗 <a href='{link}'>Voir l'annonce</a>"
-            )
-            new_alerts.append(message)
-
+        r = requests.post(url, json=payload, headers=HEADERS, timeout=15)
+        if r.status_code == 200:
+            return r.json().get("ads", [])
+        else:
+            print(f"[API ERROR] {r.status_code}")
+            return []
     except Exception as e:
-        print(f"[FEED ERROR] {label}: {e}")
-
+        print(f"[SEARCH EXCEPTION] {e}")
+        return []
+ 
+ 
+def format_alert(label, ad, max_price):
+    title = ad.get("subject", "Sans titre")
+    price = ad.get("price", [None])
+    price_val = price[0] if price else None
+    location = ad.get("location", {})
+    city = location.get("city", "")
+    dept = location.get("zipcode", "")[:2]
+    ad_id = str(ad.get("list_id", ""))
+    url = f"https://www.leboncoin.fr/ad/{ad_id}"
+ 
+    if price_val:
+        revente = price_val * 4
+        marge = revente - price_val
+        prix_str = f"{price_val}€"
+        marge_str = f"~{marge:.0f}€ de marge potentielle"
+    else:
+        prix_str = "Prix non indiqué"
+        marge_str = ""
+ 
+    message = (
+        f"🚨 <b>BONNE AFFAIRE</b>\n"
+        f"{label}\n"
+        f"━━━━━━━━━━━━━━━━\n"
+        f"<b>{title}</b>\n"
+        f"💰 {prix_str}\n"
+        f"📍 {city} ({dept})\n"
+    )
+    if marge_str:
+        message += f"📈 {marge_str}\n"
+    message += f"🔗 <a href='{url}'>Voir l'annonce</a>"
+    return message, ad_id
+ 
+ 
+def check_search(label, keywords, max_price, seen):
+    new_alerts = []
+    ads = search_leboncoin(keywords, max_price)
+    for ad in ads:
+        ad_id = str(ad.get("list_id", ""))
+        if not ad_id or ad_id in seen:
+            continue
+        title = ad.get("subject", "")
+        if is_excluded(title):
+            seen.add(ad_id)
+            continue
+        seen.add(ad_id)
+        msg, _ = format_alert(label, ad, max_price)
+        new_alerts.append(msg)
     return new_alerts
-
-
+ 
+ 
 def main():
-    print("🚀 Kadexa Alert — Démarrage")
-    print(f"⏱️  Vérification toutes les {INTERVAL} secondes")
-    print(f"🔍 {len(SEARCHES)} recherches actives\n")
-
-    # Envoi d'un message de démarrage
+    print("Kadexa Alert - Demarrage")
+    print(f"Verification toutes les {INTERVAL} secondes")
+    print(f"{len(SEARCHES)} recherches actives")
+ 
     send_telegram(
         "🟢 <b>Kadexa Alert démarré !</b>\n"
-        f"Je surveille {len(SEARCHES)} catégories sur Leboncoin.\n"
-        f"Tu seras alerté en moins de {INTERVAL} secondes."
+        f"Je surveille {len(SEARCHES)} catégories.\n"
+        "Alertes uniquement si prix rentable."
     )
-
+ 
     seen = load_seen()
-
-    # Premier passage : on mémorise sans alerter (évite le flood au démarrage)
-    print("📡 Premier scan (initialisation)...")
-    for label, url in SEARCHES:
-        check_feed(label, url, seen)
+ 
+    print("Premier scan (initialisation)...")
+    for label, keywords, max_price in SEARCHES:
+        ads = search_leboncoin(keywords, max_price)
+        for ad in ads:
+            ad_id = str(ad.get("list_id", ""))
+            if ad_id:
+                seen.add(ad_id)
     save_seen(seen)
-    print("✅ Initialisation terminée. Surveillance active.\n")
-
-    # Boucle principale
+    print("Initialisation terminee. Surveillance active.")
+ 
     while True:
         time.sleep(INTERVAL)
         now = datetime.now().strftime("%H:%M:%S")
-        print(f"[{now}] Vérification en cours...")
-
+        print(f"[{now}] Verification...")
+ 
         total_new = 0
-        for label, url in SEARCHES:
-            alerts = check_feed(label, url, seen)
+        for label, keywords, max_price in SEARCHES:
+            alerts = check_search(label, keywords, max_price, seen)
             for msg in alerts:
                 send_telegram(msg)
                 total_new += 1
-                time.sleep(1)  # évite le spam Telegram
-
+                time.sleep(1)
+ 
         save_seen(seen)
         if total_new:
-            print(f"  → {total_new} nouvelle(s) annonce(s) envoyée(s)")
+            print(f"  -> {total_new} bonne(s) affaire(s) !")
         else:
-            print(f"  → Rien de nouveau")
-
-
+            print(f"  -> Rien sous les seuils")
+ 
+ 
 if __name__ == "__main__":
     main()
