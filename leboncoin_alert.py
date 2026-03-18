@@ -13,24 +13,38 @@ INTERVAL = 60
 SEEN_FILE = "seen_ids.json"
 
 # ============================================================
-#  RECHERCHES ET PRIX MAXIMUM PAR CATEGORIE
+#  20 CATEGORIES — Prix achat max / Revente estimee x4
 # ============================================================
 SEARCHES = [
-    ("💍 Bijou argent ancien",     "bijou argent ancien",        15),
-    ("⌚ Montre ancienne",          "montre ancienne gousset",    20),
-    ("🕯️ Bougeoir laiton",         "bougeoir laiton ancien",     10),
-    ("🎖️ Médaille ancienne",       "medaille ancienne",           8),
-    ("🔍 Broche camée vintage",    "broche camee vintage",       10),
-    ("👜 Sac Louis Vuitton",       "sac louis vuitton",          50),
-    ("👗 Veste Moncler",           "veste moncler",              60),
-    ("👟 Nike Air Jordan",         "nike air jordan",            30),
-    ("🥈 Argenterie ancienne",     "argenterie argent massif",   20),
-    ("🪙 Pièce monnaie ancienne",  "piece monnaie ancienne",      5),
+    # VETEMENTS MARQUE
+    ("👟 Nike Air Jordan sneakers",     "nike air jordan",           30),
+    ("👟 Adidas Yeezy sneakers",        "adidas yeezy",              40),
+    ("🧥 Veste Moncler doudoune",       "moncler doudoune veste",    60),
+    ("🧥 Veste Stone Island",           "stone island veste",        50),
+    ("👕 Ralph Lauren polo shirt",      "ralph lauren polo",         15),
+    ("👖 Jean Levi's 501 vintage",      "levi's 501 vintage",        12),
+    ("👜 Sac Louis Vuitton",            "sac louis vuitton",         50),
+    ("👜 Sac Gucci",                    "sac gucci",                 60),
+    ("👟 Baskets Nike vintage",         "nike vintage baskets",      20),
+    # BIJOUX ET MONTRES
+    ("💍 Bijou argent massif poincon",  "bijou argent massif",       15),
+    ("⌚ Montre ancienne gousset",       "montre ancienne gousset",   20),
+    ("⌚ Montre Seiko vintage",          "montre seiko vintage",      25),
+    ("🔍 Broche camee vintage argent",  "broche camee argent",       10),
+    # OBJETS ANCIENS
+    ("🥈 Argenterie argent massif",     "argenterie argent massif",  20),
+    ("🕯️ Cuivre laiton bronze ancien",  "cuivre laiton bronze",      10),
+    ("🎖️ Medaille ancienne militaire",  "medaille ancienne",          8),
+    ("🪙 Piece monnaie ancienne",       "piece monnaie ancienne",     5),
+    ("📷 Appareil photo vintage",       "appareil photo vintage",    15),
+    ("📻 Radio transistor vintage",     "radio transistor vintage",  10),
+    ("🎸 Guitare ancienne instrument",  "guitare ancienne",          30),
 ]
 
 EXCLUDE_KEYWORDS = [
     "cherche", "recherche", "wanted", "reproduction",
-    "copie", "faux", "plaque", "lot de 50", "lot de 100"
+    "copie", "faux", "plaque", "lot de 50", "lot de 100",
+    "neuf jamais", "drop", "inspired"
 ]
 
 HEADERS = {
@@ -50,7 +64,7 @@ def load_seen():
 
 def save_seen(seen):
     with open(SEEN_FILE, "w") as f:
-        json.dump(list(seen)[-2000:], f)
+        json.dump(list(seen)[-3000:], f)
 
 
 def send_telegram(message):
@@ -112,16 +126,15 @@ def format_alert(label, ad, max_price):
     url = f"https://www.leboncoin.fr/ad/{ad_id}"
 
     if price_val:
-        revente = price_val * 4
-        marge = revente - price_val
+        marge = (price_val * 4) - price_val
         prix_str = f"{price_val}€"
         marge_str = f"~{marge:.0f}€ de marge potentielle"
     else:
-        prix_str = "Prix non indiqué"
+        prix_str = "Prix non indique"
         marge_str = ""
 
     message = (
-        f"🚨 <b>BONNE AFFAIRE</b>\n"
+        f"🚨 <b>BONNE AFFAIRE !</b>\n"
         f"{label}\n"
         f"━━━━━━━━━━━━━━━━\n"
         f"<b>{title}</b>\n"
@@ -154,17 +167,18 @@ def check_search(label, keywords, max_price, seen):
 def main():
     print("Kadexa Alert - Demarrage")
     print(f"Verification toutes les {INTERVAL} secondes")
-    print(f"{len(SEARCHES)} recherches actives")
+    print(f"{len(SEARCHES)} categories surveillees")
 
     send_telegram(
-        "🟢 <b>Kadexa Alert démarré !</b>\n"
-        f"Je surveille {len(SEARCHES)} catégories.\n"
-        "Alertes uniquement si prix rentable."
+        "🟢 <b>Kadexa Alert v2 !</b>\n"
+        f"Surveillance de {len(SEARCHES)} categories.\n"
+        "Vetements luxe + bijoux + objets anciens.\n"
+        "Alertes uniquement si prix rentable (marge x4)."
     )
 
     seen = load_seen()
 
-    print("Premier scan (initialisation)...")
+    print("Initialisation...")
     for label, keywords, max_price in SEARCHES:
         ads = search_leboncoin(keywords, max_price)
         for ad in ads:
@@ -172,12 +186,12 @@ def main():
             if ad_id:
                 seen.add(ad_id)
     save_seen(seen)
-    print("Initialisation terminee. Surveillance active.")
+    print("Surveillance active.")
 
     while True:
         time.sleep(INTERVAL)
         now = datetime.now().strftime("%H:%M:%S")
-        print(f"[{now}] Verification...")
+        print(f"[{now}] Scan...")
 
         total_new = 0
         for label, keywords, max_price in SEARCHES:
@@ -191,7 +205,7 @@ def main():
         if total_new:
             print(f"  -> {total_new} bonne(s) affaire(s) !")
         else:
-            print(f"  -> Rien sous les seuils")
+            print(f"  -> Rien")
 
 
 if __name__ == "__main__":
