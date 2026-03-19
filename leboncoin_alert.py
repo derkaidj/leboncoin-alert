@@ -13,38 +13,67 @@ INTERVAL = 60
 SEEN_FILE = "seen_ids.json"
 
 # ============================================================
-#  20 CATEGORIES — Prix achat max / Revente estimee x4
+#  CATEGORIES BROCANTE — Particuliers uniquement, < 2kg
+#  Prix achat max / Revente estimee x4 sur Etsy/Vinted
 # ============================================================
 SEARCHES = [
-    # VETEMENTS MARQUE
-    ("👟 Nike Air Jordan sneakers",     "nike air jordan",           30),
-    ("👟 Adidas Yeezy sneakers",        "adidas yeezy",              40),
-    ("🧥 Veste Moncler doudoune",       "moncler doudoune veste",    60),
-    ("🧥 Veste Stone Island",           "stone island veste",        50),
-    ("👕 Ralph Lauren polo shirt",      "ralph lauren polo",         15),
-    ("👖 Jean Levi's 501 vintage",      "levi's 501 vintage",        12),
-    ("👜 Sac Louis Vuitton",            "sac louis vuitton",         50),
-    ("👜 Sac Gucci",                    "sac gucci",                 60),
-    ("👟 Baskets Nike vintage",         "nike vintage baskets",      20),
-    # BIJOUX ET MONTRES
-    ("💍 Bijou argent massif poincon",  "bijou argent massif",       15),
-    ("⌚ Montre ancienne gousset",       "montre ancienne gousset",   20),
-    ("⌚ Montre Seiko vintage",          "montre seiko vintage",      25),
-    ("🔍 Broche camee vintage argent",  "broche camee argent",       10),
-    # OBJETS ANCIENS
-    ("🥈 Argenterie argent massif",     "argenterie argent massif",  20),
-    ("🕯️ Cuivre laiton bronze ancien",  "cuivre laiton bronze",      10),
-    ("🎖️ Medaille ancienne militaire",  "medaille ancienne",          8),
-    ("🪙 Piece monnaie ancienne",       "piece monnaie ancienne",     5),
-    ("📷 Appareil photo vintage",       "appareil photo vintage",    15),
-    ("📻 Radio transistor vintage",     "radio transistor vintage",  10),
-    ("🎸 Guitare ancienne instrument",  "guitare ancienne",          30),
+    # CUIVRE & LAITON
+    ("🟤 Casserole cuivre ancienne",     "casserole cuivre ancienne",     25),
+    ("🟤 Poele cuivre vintage",          "poele cuivre",                  20),
+    ("🟤 Bassine cuivre",                "bassine cuivre",                20),
+    ("🟤 Bouilloire cuivre ancienne",    "bouilloire cuivre",             20),
+    ("🟤 Mortier cuivre laiton",         "mortier cuivre laiton",         15),
+    ("🟤 Plateau laiton ancien",         "plateau laiton ancien",         15),
+    ("🟤 Vase laiton bronze",            "vase laiton bronze",            15),
+    ("🟤 Chandelier laiton cuivre",      "chandelier laiton cuivre",      15),
+    # DECO & OBJETS ANCIENS
+    ("🏺 Statuette bronze figurine",     "statuette bronze figurine",     20),
+    ("🏺 Vase ancien cristal",           "vase ancien cristal",           15),
+    ("🏺 Bougeoir chandelier argent",    "bougeoir chandelier argent",    15),
+    ("🏺 Miroir ancien dore",            "miroir ancien dore",            20),
+    ("🏺 Cadre dore ancien",             "cadre dore ancien",             10),
+    ("🏺 Boite ancienne coffret bois",   "boite ancienne coffret",        10),
+    ("🏺 Plaque emaillee publicitaire",  "plaque emaillee ancienne",      15),
+    # CERAMIQUE
+    ("🫙 Ceramique Vallauris",           "ceramique vallauris",           15),
+    ("🫙 Ceramique Accolay",             "ceramique accolay",             15),
+    ("🫙 Faience ancienne porcelaine",   "faience ancienne porcelaine",   10),
+    # VAISSELLE VINTAGE
+    ("🍽️ Service Arcopal fleuri",        "arcopal fleuri",                10),
+    ("🍽️ Plat Pyrex colore vintage",     "pyrex colore vintage",          10),
+    ("🍽️ Assiettes anciennes lot",       "assiettes anciennes lot",       10),
+    ("🍽️ Bols bretons faience",          "bols bretons faience",          10),
+    ("🍽️ Couverts argent massif",        "couverts argent massif",        20),
+    ("🍽️ Cafetiere emaillee ancienne",   "cafetiere emaillee ancienne",   10),
+    # MODE VINTAGE
+    ("👖 Jean Levi's 501 vintage",       "levi's 501 vintage",            20),
+    ("👗 Veste vintage marque",          "veste vintage",                 15),
+    ("👗 Blouson cuir vintage",          "blouson cuir vintage",          25),
+    ("👗 Manteau vintage femme",         "manteau vintage",               20),
+    ("👗 Sac cuir vintage",              "sac cuir vintage",              20),
+    ("👗 Foulard soie vintage",          "foulard soie vintage",          10),
+    ("👗 Lunettes vintage",              "lunettes vintage",              10),
+    # BIJOUX & MONTRES
+    ("💍 Montre vintage mecanique",      "montre vintage mecanique",      25),
+    ("💍 Bracelet argent ancien",        "bracelet argent ancien",        15),
+    ("💍 Broche ancienne bijou",         "broche ancienne bijou",         10),
+    ("💍 Bague ancienne or argent",      "bague ancienne or argent",      20),
+    # COLLECTIBLES LEGERS
+    ("📷 Appareil photo argentique",     "appareil photo argentique",     20),
+    ("✒️ Stylo plume ancien",            "stylo plume ancien",            10),
+    ("🔥 Briquet Zippo vintage",         "briquet zippo vintage",         10),
+    ("🖼️ Affiche publicitaire ancienne", "affiche publicitaire ancienne", 10),
+    ("📚 Livre ancien reliure cuir",     "livre ancien reliure",          10),
+    # PETIT MOBILIER
+    ("🪑 Tabouret bois ancien",          "tabouret bois ancien",          15),
+    ("🪑 Chaise bistrot vintage",        "chaise bistrot vintage",        20),
 ]
 
 EXCLUDE_KEYWORDS = [
     "cherche", "recherche", "wanted", "reproduction",
-    "copie", "faux", "plaque", "lot de 50", "lot de 100",
-    "neuf jamais", "drop", "inspired"
+    "copie", "faux", "neuf jamais", "drop", "inspired",
+    "lot de 50", "lot de 100", "professionnel", "boutique",
+    "depot vente", "antiquaire", "brocanteur"
 ]
 
 HEADERS = {
@@ -96,7 +125,8 @@ def search_leboncoin(keywords, max_price):
     payload = {
         "filters": {
             "keywords": {"text": keywords, "type": "all"},
-            "ranges": {"price": {"max": max_price}}
+            "ranges": {"price": {"max": max_price}},
+            "enums": {"owner_type": ["private"]}
         },
         "sort_by": "time",
         "sort_order": "desc",
@@ -170,9 +200,10 @@ def main():
     print(f"{len(SEARCHES)} categories surveillees")
 
     send_telegram(
-        "🟢 <b>Kadexa Alert v2 !</b>\n"
+        "🟢 <b>Kadexa Alert v3 — Brocante !</b>\n"
         f"Surveillance de {len(SEARCHES)} categories.\n"
-        "Vetements luxe + bijoux + objets anciens.\n"
+        "Cuivre · Deco · Vaisselle · Mode · Bijoux.\n"
+        "✅ Particuliers uniquement.\n"
         "Alertes uniquement si prix rentable (marge x4)."
     )
 
