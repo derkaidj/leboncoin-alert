@@ -7,73 +7,81 @@ from datetime import datetime
 # ============================================================
 #  CONFIGURATION
 # ============================================================
-TELEGRAM_TOKEN = "8760062971:AAHgRGZRLSMARkQd5qmZLS9XTha3bZGURbY"
+TELEGRAM_TOKEN   = "8760062971:AAHgRGZRLSMARkQd5qmZLS9XTha3bZGURbY"
 TELEGRAM_CHAT_ID = "8035951279"
-INTERVAL = 60
-SEEN_FILE = "seen_ids.json"
+INTERVAL         = 60
+SEEN_FILE        = "seen_ids.json"
 
 # ============================================================
-#  CATEGORIES BROCANTE — Particuliers uniquement, < 2kg
-#  Prix achat max / Revente estimee x4 sur Etsy/Vinted
+#  CATEGORIES — Brocante / Cuisine ancienne / Déco vintage
+#  Stratégie : acheter particulier LBC sous-évalué → revente
+#  Etsy international x4/x5
+#  Format : (label, mots-clés, prix_max_achat, prix_etsy_min)
 # ============================================================
 SEARCHES = [
-    # CUIVRE & LAITON
-    ("🟤 Casserole cuivre ancienne",     "casserole cuivre ancienne",     25),
-    ("🟤 Poele cuivre vintage",          "poele cuivre",                  20),
-    ("🟤 Bassine cuivre",                "bassine cuivre",                20),
-    ("🟤 Bouilloire cuivre ancienne",    "bouilloire cuivre",             20),
-    ("🟤 Mortier cuivre laiton",         "mortier cuivre laiton",         15),
-    ("🟤 Plateau laiton ancien",         "plateau laiton ancien",         15),
-    ("🟤 Vase laiton bronze",            "vase laiton bronze",            15),
-    ("🟤 Chandelier laiton cuivre",      "chandelier laiton cuivre",      15),
-    # DECO & OBJETS ANCIENS
-    ("🏺 Statuette bronze figurine",     "statuette bronze figurine",     20),
-    ("🏺 Vase ancien cristal",           "vase ancien cristal",           15),
-    ("🏺 Bougeoir chandelier argent",    "bougeoir chandelier argent",    15),
-    ("🏺 Miroir ancien dore",            "miroir ancien dore",            20),
-    ("🏺 Cadre dore ancien",             "cadre dore ancien",             10),
-    ("🏺 Boite ancienne coffret bois",   "boite ancienne coffret",        10),
-    ("🏺 Plaque emaillee publicitaire",  "plaque emaillee ancienne",      15),
-    # CERAMIQUE
-    ("🫙 Ceramique Vallauris",           "ceramique vallauris",           15),
-    ("🫙 Ceramique Accolay",             "ceramique accolay",             15),
-    ("🫙 Faience ancienne porcelaine",   "faience ancienne porcelaine",   10),
-    # VAISSELLE VINTAGE
-    ("🍽️ Service Arcopal fleuri",        "arcopal fleuri",                10),
-    ("🍽️ Plat Pyrex colore vintage",     "pyrex colore vintage",          10),
-    ("🍽️ Assiettes anciennes lot",       "assiettes anciennes lot",       10),
-    ("🍽️ Bols bretons faience",          "bols bretons faience",          10),
-    ("🍽️ Couverts argent massif",        "couverts argent massif",        20),
-    ("🍽️ Cafetiere emaillee ancienne",   "cafetiere emaillee ancienne",   10),
-    # MODE VINTAGE
-    ("👖 Jean Levi's 501 vintage",       "levi's 501 vintage",            20),
-    ("👗 Veste vintage marque",          "veste vintage",                 15),
-    ("👗 Blouson cuir vintage",          "blouson cuir vintage",          25),
-    ("👗 Manteau vintage femme",         "manteau vintage",               20),
-    ("👗 Sac cuir vintage",              "sac cuir vintage",              20),
-    ("👗 Foulard soie vintage",          "foulard soie vintage",          10),
-    ("👗 Lunettes vintage",              "lunettes vintage",              10),
-    # BIJOUX & MONTRES
-    ("💍 Montre vintage mecanique",      "montre vintage mecanique",      25),
-    ("💍 Bracelet argent ancien",        "bracelet argent ancien",        15),
-    ("💍 Broche ancienne bijou",         "broche ancienne bijou",         10),
-    ("💍 Bague ancienne or argent",      "bague ancienne or argent",      20),
-    # COLLECTIBLES LEGERS
-    ("📷 Appareil photo argentique",     "appareil photo argentique",     20),
-    ("✒️ Stylo plume ancien",            "stylo plume ancien",            10),
-    ("🔥 Briquet Zippo vintage",         "briquet zippo vintage",         10),
-    ("🖼️ Affiche publicitaire ancienne", "affiche publicitaire ancienne", 10),
-    ("📚 Livre ancien reliure cuir",     "livre ancien reliure",          10),
-    # PETIT MOBILIER
-    ("🪑 Tabouret bois ancien",          "tabouret bois ancien",          15),
-    ("🪑 Chaise bistrot vintage",        "chaise bistrot vintage",        20),
+
+    # ── CUIVRE & USTENSILES ANCIENS ──────────────────────────
+    ("🟤 Casserole cuivre ancienne",    "casserole cuivre ancienne",       25,  100),
+    ("🟤 Poele cuivre vintage",         "poele cuivre",                    20,   90),
+    ("🟤 Bassine confiture cuivre",     "bassine cuivre confiture",        20,   90),
+    ("🟤 Bouilloire cuivre ancienne",   "bouilloire cuivre",               20,   70),
+    ("🟤 Braconnier bouilloire cuivre", "braconnier cuivre",               15,   70),
+    ("🟤 Moule cuivre ancien",          "moule cuivre ancien",             15,   80),
+    ("🟤 Daubiere cuivre ancienne",     "daubiere cuivre",                 20,  100),
+    ("🟤 Chaudron cuivre ancien",       "chaudron cuivre",                 25,  150),
+    ("🟤 Lechefrite cuivre ancienne",   "lechefrite cuivre",               20,  100),
+    ("🟤 Couvercle cuivre ancien",      "couvercle cuivre ancien",         10,   60),
+    ("🟤 Verseuse cuivre ancienne",     "verseuse cuivre ancienne",        15,   70),
+    ("🟤 Lot casseroles cuivre",        "lot casseroles cuivre",           50,  300),
+
+    # ── LAITON & BRONZE ──────────────────────────────────────
+    ("🟡 Mortier laiton ancien",        "mortier laiton bronze ancien",    20,   90),
+    ("🟡 Robinet tonneau laiton",       "robinet tonneau laiton",          20,  100),
+    ("🟡 Encrier laiton ancien",        "encrier laiton ancien",           15,   80),
+    ("🟡 Chandelier bronze ancien",     "chandelier bronze ancien",        15,   80),
+    ("🟡 Applique bronze ancienne",     "applique murale bronze",          20,  100),
+    ("🟡 Lustre bronze ancien",         "lustre bronze ancien",            30,  200),
+    ("🟡 Bougeoir bronze laiton",       "bougeoir bronze laiton",          10,   60),
+    ("🟡 Embrasse rideau laiton",       "embrasse rideau laiton bronze",   15,   80),
+    ("🟡 Ustensiles cuisine laiton",    "ustensiles cuisine laiton",       15,   90),
+
+    # ── FAIENCE & PORCELAINE ─────────────────────────────────
+    ("🫙 Pichet emaille ancien",        "pichet emaille ancien",           10,   60),
+    ("🫙 Seau emaille vintage",         "seau emaille vintage",            10,   50),
+    ("🫙 Cafetiere emaillee ancienne",  "cafetiere emaillee ancienne",     10,   65),
+    ("🫙 Assiettes Sarreguemines",      "assiettes sarreguemines",         15,   70),
+    ("🫙 Assiettes Digoin ancienne",    "assiettes digoin",                12,   65),
+    ("🫙 Soupiere ancienne porcelaine", "soupiere ancienne porcelaine",    15,   80),
+    ("🫙 Bol faience ancienne",         "bol faience ancienne",            10,   55),
+    ("🫙 Pot moutarde gres ancien",     "pot moutarde gres ancien",         8,   45),
+    ("🫙 Service vaisselle ancien",     "service vaisselle ancien",        20,  100),
+    ("🫙 Pot rillettes gres ancien",    "pot rillettes gres",               8,   45),
+    ("🫙 Cruche ancienne faience",      "cruche ancienne faience",         10,   60),
+    ("🫙 Terrrine gres ancienne",       "terrine gres ancienne",           10,   55),
+    ("🫙 Bocaux anciens verre",         "bocaux anciens verre",            10,   50),
+    ("🫙 Pot apothicaire porcelaine",   "pot apothicaire porcelaine",      10,   60),
+    ("🫙 Assiettes huitres anciennes",  "assiettes huitres anciennes",     15,   80),
+    ("🫙 Pots escargots gres",          "pots escargots gres",             10,   50),
+
+    # ── ABAT-JOURS & LUMINAIRES ──────────────────────────────
+    ("💡 Abat-jour verre ancien",       "abat-jour verre ancien",          15,   80),
+    ("💡 Abat-jour opaline vintage",    "abat-jour opaline",               15,   90),
+
+    # ── DÉCO VINTAGE DIVERS ──────────────────────────────────
+    ("🏺 Balance ancienne fonte",       "balance ancienne fonte",          15,   80),
+    ("🏺 Benitier ancien",              "benitier ancien",                  8,   45),
+    ("🏺 Statue Vierge ancienne",       "statue vierge ancienne",          10,   60),
+    ("🏺 Moulin cafe vintage",          "moulin cafe vintage",             10,   60),
+    ("🏺 Tapisserie ancienne",          "tapisserie ancienne",             15,   80),
+    ("🏺 Vase ceramique ancien",        "vase ceramique ancien",           10,   55),
+    ("🏺 Couverts argent ancien",       "couverts argent ancien",          15,   80),
 ]
 
 EXCLUDE_KEYWORDS = [
     "cherche", "recherche", "wanted", "reproduction",
     "copie", "faux", "neuf jamais", "drop", "inspired",
     "lot de 50", "lot de 100", "professionnel", "boutique",
-    "depot vente", "antiquaire", "brocanteur"
+    "depot vente", "antiquaire", "brocanteur", "marchand"
 ]
 
 HEADERS = {
@@ -84,6 +92,41 @@ HEADERS = {
 }
 
 
+# ============================================================
+#  SCORE REVENTE (1–10)
+#  Basé sur le ratio prix achat vs estimation Etsy
+# ============================================================
+def compute_score(price_val, etsy_min):
+    if not price_val or price_val == 0:
+        return 5, "~200€"
+    ratio = etsy_min / price_val
+    etsy_est = int(price_val * min(ratio, 5))
+    if ratio >= 5:
+        score = 10
+    elif ratio >= 4:
+        score = 9
+    elif ratio >= 3.5:
+        score = 8
+    elif ratio >= 3:
+        score = 7
+    elif ratio >= 2.5:
+        score = 6
+    elif ratio >= 2:
+        score = 5
+    else:
+        score = 3
+    return score, f"~{etsy_est}€"
+
+
+def score_stars(score):
+    filled = "⭐" * (score // 2)
+    half   = "✨" if score % 2 else ""
+    return filled + half
+
+
+# ============================================================
+#  UTILS
+# ============================================================
 def load_seen():
     if os.path.exists(SEEN_FILE):
         with open(SEEN_FILE, "r") as f:
@@ -96,7 +139,18 @@ def save_seen(seen):
         json.dump(list(seen)[-3000:], f)
 
 
-def send_telegram(message):
+def is_excluded(text):
+    text_lower = text.lower()
+    for kw in EXCLUDE_KEYWORDS:
+        if kw.lower() in text_lower:
+            return True
+    return False
+
+
+# ============================================================
+#  TELEGRAM — texte + photo séparément
+# ============================================================
+def send_telegram_text(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
@@ -107,19 +161,32 @@ def send_telegram(message):
     try:
         r = requests.post(url, json=payload, timeout=10)
         if r.status_code != 200:
-            print(f"[Telegram ERROR] {r.text}")
+            print(f"[Telegram TEXT ERROR] {r.text}")
     except Exception as e:
-        print(f"[Telegram EXCEPTION] {e}")
+        print(f"[Telegram TEXT EXCEPTION] {e}")
 
 
-def is_excluded(text):
-    text_lower = text.lower()
-    for kw in EXCLUDE_KEYWORDS:
-        if kw.lower() in text_lower:
-            return True
-    return False
+def send_telegram_photo(photo_url, caption):
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "photo": photo_url,
+        "caption": caption,
+        "parse_mode": "HTML"
+    }
+    try:
+        r = requests.post(url, json=payload, timeout=10)
+        if r.status_code != 200:
+            # Photo échouée → on envoie en texte simple
+            send_telegram_text(caption)
+    except Exception as e:
+        print(f"[Telegram PHOTO EXCEPTION] {e}")
+        send_telegram_text(caption)
 
 
+# ============================================================
+#  LEBONCOIN API
+# ============================================================
 def search_leboncoin(keywords, max_price):
     url = "https://api.leboncoin.fr/api/adfinder/v1/search"
     payload = {
@@ -145,79 +212,95 @@ def search_leboncoin(keywords, max_price):
         return []
 
 
-def format_alert(label, ad, max_price):
-    title = ad.get("subject", "Sans titre")
-    price = ad.get("price", [None])
+# ============================================================
+#  FORMAT ALERTE
+# ============================================================
+def format_and_send(label, ad, etsy_min):
+    title    = ad.get("subject", "Sans titre")
+    price    = ad.get("price", [None])
     price_val = price[0] if price else None
     location = ad.get("location", {})
-    city = location.get("city", "")
-    dept = location.get("zipcode", "")[:2]
-    ad_id = str(ad.get("list_id", ""))
-    url = f"https://www.leboncoin.fr/ad/{ad_id}"
+    city     = location.get("city", "")
+    dept     = location.get("zipcode", "")[:2]
+    ad_id    = str(ad.get("list_id", ""))
+    ad_url   = f"https://www.leboncoin.fr/ad/{ad_id}"
 
-    if price_val:
-        marge = (price_val * 4) - price_val
-        prix_str = f"{price_val}€"
-        marge_str = f"~{marge:.0f}€ de marge potentielle"
-    else:
-        prix_str = "Prix non indique"
-        marge_str = ""
+    # Photo
+    images   = ad.get("images", {})
+    thumb    = images.get("thumb_url") or images.get("small_url") or ""
+    urls     = images.get("urls", [])
+    photo_url = urls[0] if urls else thumb
 
-    message = (
-        f"🚨 <b>BONNE AFFAIRE !</b>\n"
+    # Prix
+    prix_str = f"{price_val}€" if price_val else "Prix non indiqué"
+
+    # Score
+    score, etsy_est = compute_score(price_val, etsy_min)
+    stars = score_stars(score)
+
+    caption = (
+        f"🚨 <b>BONNE AFFAIRE BROCANTE !</b>\n"
         f"{label}\n"
         f"━━━━━━━━━━━━━━━━\n"
         f"<b>{title}</b>\n"
-        f"💰 {prix_str}\n"
-        f"📍 {city} ({dept})\n"
+        f"💰 {prix_str}  |  📍 {city} ({dept})\n"
+        f"🔗 <a href='{ad_url}'>Voir l'annonce</a>\n"
+        f"━━━━━━━━━━━━━━━━\n"
+        f"⭐ Score revente : {score}/10  {stars}\n"
+        f"📦 Estimation Etsy : {etsy_est}"
     )
-    if marge_str:
-        message += f"📈 {marge_str}\n"
-    message += f"🔗 <a href='{url}'>Voir l'annonce</a>"
-    return message, ad_id
+
+    if photo_url:
+        send_telegram_photo(photo_url, caption)
+    else:
+        send_telegram_text(caption)
 
 
-def check_search(label, keywords, max_price, seen):
-    new_alerts = []
+# ============================================================
+#  BOUCLE PRINCIPALE
+# ============================================================
+def check_search(label, keywords, max_price, etsy_min, seen):
     ads = search_leboncoin(keywords, max_price)
+    new_count = 0
     for ad in ads:
         ad_id = str(ad.get("list_id", ""))
         if not ad_id or ad_id in seen:
             continue
         title = ad.get("subject", "")
-        if is_excluded(title):
-            seen.add(ad_id)
-            continue
         seen.add(ad_id)
-        msg, _ = format_alert(label, ad, max_price)
-        new_alerts.append(msg)
-    return new_alerts
+        if is_excluded(title):
+            continue
+        format_and_send(label, ad, etsy_min)
+        new_count += 1
+        time.sleep(1)
+    return new_count
 
 
 def main():
-    print("Kadexa Alert - Demarrage")
-    print(f"Verification toutes les {INTERVAL} secondes")
-    print(f"{len(SEARCHES)} categories surveillees")
+    print("Kadexa Brocante Alert — Démarrage")
+    print(f"Vérification toutes les {INTERVAL} secondes")
+    print(f"{len(SEARCHES)} catégories surveillées")
 
-    send_telegram(
-        "🟢 <b>Kadexa Alert v3 — Brocante !</b>\n"
-        f"Surveillance de {len(SEARCHES)} categories.\n"
-        "Cuivre · Deco · Vaisselle · Mode · Bijoux.\n"
-        "✅ Particuliers uniquement.\n"
-        "Alertes uniquement si prix rentable (marge x4)."
+    send_telegram_text(
+        "🟢 <b>Kadexa Brocante Alert — Démarrage !</b>\n"
+        f"📦 {len(SEARCHES)} catégories surveillées\n"
+        "🏺 Cuivre · Faïence · Laiton · Déco vintage\n"
+        "👤 Particuliers uniquement\n"
+        "⭐ Score revente + estimation Etsy à chaque alerte"
     )
 
     seen = load_seen()
 
-    print("Initialisation...")
-    for label, keywords, max_price in SEARCHES:
+    # Initialisation — on mémorise les annonces déjà en ligne
+    print("Initialisation (mémorisation annonces existantes)...")
+    for label, keywords, max_price, etsy_min in SEARCHES:
         ads = search_leboncoin(keywords, max_price)
         for ad in ads:
             ad_id = str(ad.get("list_id", ""))
             if ad_id:
                 seen.add(ad_id)
     save_seen(seen)
-    print("Surveillance active.")
+    print("✅ Surveillance active — en attente de nouvelles annonces.")
 
     while True:
         time.sleep(INTERVAL)
@@ -225,18 +308,15 @@ def main():
         print(f"[{now}] Scan...")
 
         total_new = 0
-        for label, keywords, max_price in SEARCHES:
-            alerts = check_search(label, keywords, max_price, seen)
-            for msg in alerts:
-                send_telegram(msg)
-                total_new += 1
-                time.sleep(1)
+        for label, keywords, max_price, etsy_min in SEARCHES:
+            n = check_search(label, keywords, max_price, etsy_min, seen)
+            total_new += n
 
         save_seen(seen)
         if total_new:
-            print(f"  -> {total_new} bonne(s) affaire(s) !")
+            print(f"  -> {total_new} bonne(s) affaire(s) trouvée(s) !")
         else:
-            print(f"  -> Rien")
+            print(f"  -> Rien de nouveau")
 
 
 if __name__ == "__main__":
